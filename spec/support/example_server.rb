@@ -1,4 +1,5 @@
 require 'webrick'
+require 'stringio'
 
 class ExampleService < WEBrick::HTTPServlet::AbstractServlet
   PORT = 65432 # rubocop:disable NumericLiterals
@@ -11,6 +12,8 @@ class ExampleService < WEBrick::HTTPServlet::AbstractServlet
       handle_params(request, response)
     when '/multiple-params'
       handle_multiple_params(request, response)
+    when '/chunked'
+      handle_chunked(request, response)
     when '/proxy'
       response.status = 200
       response.body     = 'Proxy!'
@@ -53,6 +56,13 @@ class ExampleService < WEBrick::HTTPServlet::AbstractServlet
       response.status = 200
       response.body     = 'More Params!'
     end
+  end
+
+  def handle_chunked(request, response)
+    response.status = 200
+    response.instance_variable_set(:@buffer_size, 3)
+    response.chunked = true
+    response.body = StringIO.new('joe' * 100)
   end
 
   def do_POST(request, response) # rubocop:disable MethodName
