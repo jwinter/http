@@ -106,6 +106,23 @@ describe HTTP do
     end
   end
 
+  context 'with a chunked response' do
+    it 'fetches a long response that spans multiple buffers' do
+      begin
+        old_buffer = HTTP::Client::BUFFER_SIZE
+        HTTP::Client::BUFFER_SIZE = 3
+        response = HTTP.get("#{test_endpoint}chunked")
+        expect(response.to_s).to eq('joe' * 100)
+      ensure
+         HTTP::Client::BUFFER_SIZE = old_buffer
+      end
+    end
+    it 'fetches all of response shorter than one buffer' do
+      response = HTTP.get("#{test_endpoint}chunked-small")
+      expect(response.to_s).to eq 'joe'
+    end
+  end
+
   describe '.auth' do
     context 'with no arguments' do
       specify { expect { HTTP.auth }.to raise_error }
